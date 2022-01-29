@@ -4,7 +4,7 @@ server:
       port: 8080
   adminConnectors:
     - type: http
-      port: 8081
+      port: 8888
   applicationContextPath: /
   requestLog:
     appenders:
@@ -27,13 +27,13 @@ logging:
 
 shards:
   shards:
-    - driverClass: org.mariadb.jdbc.Driver
+    - driverClass: com.mysql.jdbc.Driver
       user: root
-      password: password
-      url: jdbc:mariadb://mariadb_1/statesman_shard1?createDatabaseIfNotExist=true
+      password:
+      url: jdbc:mysql://localhost/statesman_shard1?createDatabaseIfNotExist=true
       properties:
         charSet: UTF-8
-        hibernate.dialect: org.hibernate.dialect.MariaDBDialect
+        hibernate.dialect: org.hibernate.dialect.MySQL55Dialect
         hibernate.hbm2ddl.auto: update
         hibernate.show_sql: true
       maxWaitForConnection: 1s
@@ -43,13 +43,13 @@ shards:
       initialSize: 8
       checkConnectionWhileIdle: false
 
-    - driverClass: org.mariadb.jdbc.Driver
+    - driverClass: com.mysql.jdbc.Driver
       user: root
-      password: password
-      url: jdbc:mariadb://mariadb_2/statesman_shard2?createDatabaseIfNotExist=true
+      password:
+      url: jdbc:mysql://localhost/statesman_shard2?createDatabaseIfNotExist=true
       properties:
         charSet: UTF-8
-        hibernate.dialect: org.hibernate.dialect.MariaDBDialect
+        hibernate.dialect: org.hibernate.dialect.MySQL55Dialect
         hibernate.hbm2ddl.auto: update
         hibernate.show_sql: true
       maxWaitForConnection: 1s

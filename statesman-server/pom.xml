@@ -16,6 +16,7 @@
         <dropwizard.swagger.version>2.0.0-1</dropwizard.swagger.version>
         <dropwizard.sharding.version>2.0.23-2</dropwizard.sharding.version>
         <mariadb.driver.version>2.2.0</mariadb.driver.version>
+        <mysql-connector>5.1.36</mysql-connector>
     </properties>
 
     <dependencies>
@@ -79,6 +80,11 @@
             <groupId>org.mariadb.jdbc</groupId>
             <artifactId>mariadb-java-client</artifactId>
             <version>${mariadb.driver.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>${mysql-connector}</version>
         </dependency>
 <!--        <dependency>
             <groupId>io.dropwizard</groupId>

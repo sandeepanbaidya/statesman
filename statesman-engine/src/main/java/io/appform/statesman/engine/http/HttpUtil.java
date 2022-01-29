@@ -5,13 +5,20 @@ import com.raskasa.metrics.okhttp.InstrumentedOkHttpClients;
 import io.appform.statesman.model.HttpClientConfiguration;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.ConnectionPool;
 import okhttp3.Dispatcher;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -21,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class HttpUtil {
 
+    @SneakyThrows
     public static OkHttpClient defaultClient(final String clientName,
                                              final MetricRegistry registry,
                                              final HttpClientConfiguration configuration) {
@@ -41,7 +49,34 @@ public class HttpUtil {
         dispatcher.setMaxRequests(connections);
         dispatcher.setMaxRequestsPerHost(connections);
 
+        final TrustManager[] trustAllCerts = new TrustManager[]{
+                new X509TrustManager() {
+                    @Override
+                    public void checkClientTrusted(java.security.cert.X509Certificate[] chain,
+                                                   String authType) throws CertificateException {
+                    }
+
+                    @Override
+                    public void checkServerTrusted(java.security.cert.X509Certificate[] chain,
+                                                   String authType) throws CertificateException {
+                    }
+
+                    @Override
+                    public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                        return new X509Certificate[0];
+                    }
+                }
+        };
+
+// Install the all-trusting trust manager
+        final SSLContext sslContext = SSLContext.getInstance("SSL");
+        sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+// Create an ssl socket factory with our all-trusting manager
+        final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+
         final OkHttpClient.Builder clientBuilder = (new OkHttpClient.Builder())
+                .sslSocketFactory(sslSocketFactory, (X509TrustManager) trustAllCerts[0])
+                .hostnameVerifier((hostname, session) -> true)
                 .connectionPool(new ConnectionPool(connections, (long) idleTimeOutSeconds, TimeUnit.SECONDS))
                 .connectTimeout((long) connTimeout, TimeUnit.MILLISECONDS)
                 .readTimeout((long) opTimeout, TimeUnit.MILLISECONDS)
@@ -49,9 +84,9 @@ public class HttpUtil {
                 .dispatcher(dispatcher);
 
         return registry != null
-               ? InstrumentedOkHttpClients.create(
-                       registry, clientBuilder.build(), clientName + System.currentTimeMillis())
-               : clientBuilder.build();
+                ? InstrumentedOkHttpClients.create(
+                registry, clientBuilder.build(), clientName + System.currentTimeMillis())
+                : clientBuilder.build();
     }
 
     public static String body(Response response) {

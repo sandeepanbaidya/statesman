@@ -175,6 +175,7 @@ public class HousekeepingResource {
     @Timed
     @Path("/trigger/workflow/{workflowId}")
     @ApiOperation("Trigger workflow")
+    @SneakyThrows
     public Response triggerWorkflow(@PathParam("workflowId") String workflowId,
                                     @Valid JsonNode update) {
         Workflow wf = workflowProvider.get().getWorkflow(workflowId).orElse(null);
